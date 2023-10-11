@@ -1,0 +1,21 @@
+basePath: /
+info:
+  contact: {}
+  description: A Comprehensive Semantic Analysis Web Service.
+  title: Content Creator Inshight
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Returns pong , just to check server is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Get ping response
+      tags:
+      - Ping
+swagger: "2.0"
