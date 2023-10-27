@@ -18,4 +18,23 @@ paths:
       summary: Get ping response
       tags:
       - Ping
+  /yt/list/videos/{channelID}:
+    get:
+      description: Returns list of  Youtube videos with channel id
+      parameters:
+      - description: channelId
+        in: path
+        name: channelID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: list youtube videos
+      tags:
+      - Yt
 swagger: "2.0"

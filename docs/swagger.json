@@ -27,6 +27,35 @@
                     }
                 }
             }
+        },
+        "/yt/list/videos/{channelID}": {
+            "get": {
+                "description": "Returns list of  Youtube videos with channel id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Yt"
+                ],
+                "summary": "list youtube videos",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "channelId",
+                        "name": "channelID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pong",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     }
 }

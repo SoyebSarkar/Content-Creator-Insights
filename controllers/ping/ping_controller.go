@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetBooks             godoc
 // @Summary      Get ping response
 // @Description  Returns pong , just to check server is running
 // @Tags         Ping
