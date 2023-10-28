@@ -1,9 +1,17 @@
-from flask import Flask, request
 import os
+from flask import Flask, request, jsonify
+import pandas as pd
+from transformers import AutoTokenizer
+from transformers import AutoModelForSequenceClassification
+from scipy.special import softmax
 from googleapiclient.discovery import build
+from tqdm import tqdm
 
 app = Flask(__name__)
 youtube = build('youtube', 'v3', developerKey='AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg')
+MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
 @app.route('/list/YT', methods=['POST'])
 def listYT():
@@ -52,6 +60,85 @@ def listYT():
         responseObj.append(responseData)
     print(responseObj)
     return responseObj
+
+
+@app.route('/YT/analyse/<videoId>', methods=['GET'])
+def analyseVideo(videoId):
+    comments = get_video_comments(videoId)
+    comments_df = pd.DataFrame(comments)
+
+    analyseObj = []
+    for i, row in tqdm(comments_df.iterrows(), total=len(comments_df)):
+        try:
+            temp = {}
+            text = row['comment']        
+            roberta_result = polarity_scores_roberta(text)
+            temp["comment"] = text
+            temp["scores"] = roberta_result
+            temp["username"] =row['username']
+            temp["likeCount"] = row['likeCount']
+            temp["date"] = row['date']
+            temp["channelName"] = row['channelName']
+            analyseObj.append(temp)
+        except Exception as e:
+            print("Unable to execute for comment--->",text)
+        
+
+    return analyseObj
+
+
+
+
+
+
+def polarity_scores_roberta(example):
+    encoded_text = tokenizer(example, return_tensors='pt')
+    output = model(**encoded_text)
+    scores = output[0][0].detach().numpy()
+    scores = softmax(scores)
+    scores_dict = {
+        'roberta_neg' : str(scores[0]),
+        'roberta_neu' : str(scores[1]),
+        'roberta_pos' : str(scores[2])
+    }
+    return scores_dict
+
+
+def get_video_comments(video_id):
+    comments = []
+    next_page_token = None
+   
+    while True:
+        request = youtube.commentThreads().list(
+            part='snippet',
+            videoId=video_id,
+            maxResults=100,  # You can adjust the number of comments per request
+            pageToken=next_page_token,
+        )
+        response = request.execute()
+        for item in response['items']:
+            commentDetails = {}
+            commentDetails['comment'] = item['snippet']['topLevelComment']['snippet']['textOriginal']
+            commentDetails['username'] = item['snippet']['topLevelComment']['snippet']['authorDisplayName']
+            commentDetails['likeCount'] = item['snippet']['topLevelComment']['snippet']['likeCount']
+            commentDetails['date'] = item['snippet']['topLevelComment']['snippet']['publishedAt']
+            commentDetails['channelName'] = item['snippet']['topLevelComment']['snippet']['authorChannelUrl']
+            comments.append(commentDetails)
+        next_page_token = response.get('nextPageToken')
+
+
+        if not next_page_token:
+            break
+
+
+    return comments
+
+
+
+
+
+
+
 
 
 def get_video_info(video_id):

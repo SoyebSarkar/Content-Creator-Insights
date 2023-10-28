@@ -35,6 +35,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/yt/analyse/video/{video_id}": {
+            "get": {
+                "description": "Returns Sentiment analyse of all video comments",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Yt"
+                ],
+                "summary": "list analyse detail of video comments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "videoID",
+                        "name": "video_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pong",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/yt/list/videos/{channelID}": {
             "get": {
                 "description": "Returns list of  Youtube videos with channel id",
@@ -49,7 +78,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "channelId",
-                        "name": "channelID",
+                        "name": "channel_id",
                         "in": "path",
                         "required": true
                     }

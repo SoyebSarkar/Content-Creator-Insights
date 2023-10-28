@@ -1,1 +1,6 @@
 flask
+pandas
+transformers
+scipy
+google-api-python-client
+sentiment

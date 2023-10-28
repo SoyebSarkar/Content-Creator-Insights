@@ -12,5 +12,7 @@ func MapUrls(router *gin.Engine) {
 	router.GET("/", ping.Ping)
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	router.GET("/yt/list/videos/:channelID", ytControllers.ListYoutubeVideos)
+	router.GET("/yt/list/videos/:channel_id", ytControllers.ListYoutubeVideos)
+	router.GET("/yt/analyse/video/:video_id", ytControllers.AnalyseVideo)
+
 }

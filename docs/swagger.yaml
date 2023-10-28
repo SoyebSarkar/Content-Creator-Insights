@@ -18,13 +18,32 @@ paths:
       summary: Get ping response
       tags:
       - Ping
+  /yt/analyse/video/{video_id}:
+    get:
+      description: Returns Sentiment analyse of all video comments
+      parameters:
+      - description: videoID
+        in: path
+        name: video_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: list analyse detail of video comments
+      tags:
+      - Yt
   /yt/list/videos/{channelID}:
     get:
       description: Returns list of  Youtube videos with channel id
       parameters:
       - description: channelId
         in: path
-        name: channelID
+        name: channel_id
         required: true
         type: string
       produces:
