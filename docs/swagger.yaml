@@ -1,4 +1,25 @@
 basePath: /
+definitions:
+  auth.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  users.User:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+    type: object
 info:
   contact: {}
   description: A Comprehensive Semantic Analysis Web Service.
@@ -18,6 +39,46 @@ paths:
       summary: Get ping response
       tags:
       - Ping
+  /login:
+    post:
+      description: validate login with credentials
+      parameters:
+      - description: login details
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/auth.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Validate login
+      tags:
+      - users
+  /signup:
+    post:
+      description: Creates a new user from signup
+      parameters:
+      - description: user details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Creates a new user
+      tags:
+      - users
   /yt/analyse/video/{video_id}:
     get:
       description: Returns Sentiment analyse of all video comments
