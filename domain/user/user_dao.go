@@ -7,6 +7,7 @@ import (
 
 const (
 	queryGetUserPassDB = "SELECT `password` FROM `users` WHERE `email` = ?"
+	queryUserExist     = "SELECT COUNT(*) FROM `users` WHERE email = ?"
 )
 
 func HashPassword(password string, salt []byte) string {
@@ -23,4 +24,15 @@ func GetUserPasswordFromDB(email string) (string, error) {
 		return "", err
 	}
 	return password, nil
+}
+func CheckIfUserExist(email string) (error, bool) {
+	var count int
+	err := mysql.Client.QueryRow(queryUserExist, email).Scan(&count)
+	if err != nil {
+		return err, false
+	}
+	if count == 0 {
+		return nil, false
+	}
+	return nil, true
 }

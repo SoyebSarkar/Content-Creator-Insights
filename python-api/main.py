@@ -8,7 +8,9 @@ from googleapiclient.discovery import build
 from tqdm import tqdm
 
 app = Flask(__name__)
-youtube = build('youtube', 'v3', developerKey='AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg')
+key1 = "AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg"
+key2 = "AIzaSyBz5T6PD9tN5SSTEHVNXUG2HH6VZN1iEss"
+youtube = build('youtube', 'v3', developerKey=key1)
 MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)

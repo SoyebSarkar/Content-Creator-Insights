@@ -8,6 +8,7 @@ import (
 	userdto "github.com/SoyebSarkar/content-creator-insight/domain/user"
 	service "github.com/SoyebSarkar/content-creator-insight/services"
 	userServices "github.com/SoyebSarkar/content-creator-insight/services"
+	"github.com/SoyebSarkar/content-creator-insight/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,7 +28,7 @@ func CreateUser(c *gin.Context) {
 	err := userServices.CreateUser(user)
 	if err != nil {
 		fmt.Println("-->", err)
-		c.JSON(http.StatusOK, err.Error())
+		c.JSON(http.StatusOK, errors.NewInternalServerError(err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, map[string]int{"status": 200})
@@ -43,14 +44,18 @@ func CreateUser(c *gin.Context) {
 func LoginUser(c *gin.Context) {
 	var loginAuth auth.Login
 	if err := c.ShouldBindJSON(&loginAuth); err != nil {
-		c.JSON(http.StatusOK, "invalid json")
+		c.JSON(http.StatusOK, errors.NewInternalServerError("Invalid Json"))
 		return
 	}
 	result, err := service.LoginValidate(&loginAuth)
-	if err != nil || result == false {
+	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, "Invalid Credentials")
+		c.JSON(http.StatusOK, errors.NewInternalServerError("Invalid Credentials"))
 		return
+	}
+	if !result {
+		c.JSON(http.StatusOK, errors.NewInternalServerError("Credentials Failed"))
+
 	}
 	c.JSON(http.StatusOK, map[string]int{"status": 200})
 

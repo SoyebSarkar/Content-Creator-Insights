@@ -30,7 +30,13 @@ func (user *User) Validate() error {
 	}
 	return nil
 }
-
+func (user *User) IsUserExist() (error, bool) {
+	err, isExist := CheckIfUserExist(user.Email)
+	if err != nil {
+		return err, false
+	}
+	return nil, isExist
+}
 func (user *User) Save() error {
 	hashPassword := HashPassword(user.Password, []byte(user.Email))
 	_, err := mysql.Client.Exec(queryInsertUser, user.Name, user.Email, hashPassword)

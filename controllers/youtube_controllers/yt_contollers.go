@@ -7,12 +7,50 @@ import (
 	"net/http"
 
 	"github.com/SoyebSarkar/content-creator-insight/datasource/config"
+	"github.com/SoyebSarkar/content-creator-insight/datasource/mysql"
+	"github.com/SoyebSarkar/content-creator-insight/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
 type payloadDetails struct {
 	ApiKey    string `json:"apiKey"`
 	ChannelId string `json:"channelID"`
+}
+
+const (
+	queryListUserChannel = "SELECT `yt_channel_code` FROM `user_yt_channel` WHERE email = ?"
+)
+
+// @Summary      list youtube videos
+// @Description  Returns list of  Youtube Channel code of the user
+// @Tags         Yt
+// @Produce      json
+// @Param email path  string true "email"
+// @Success      200  []string  string "channelCode list"
+// @Router       /yt/channel_code/{emai} [get]
+func GetUserchannelCode(c *gin.Context) {
+
+	email := c.Param("email")
+
+	rows, err := mysql.Client.Query(queryListUserChannel, email)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, errors.NewInternalServerError("Database error"))
+		return
+	}
+	defer rows.Close()
+	result := make([]string, 0)
+	for rows.Next() {
+		var channelCode string
+		if err := rows.Scan(&channelCode); err != nil {
+			fmt.Println(result)
+			c.JSON(http.StatusOK, errors.NewInternalServerError("Database Error"))
+			return
+		}
+		result = append(result, channelCode)
+	}
+	fmt.Println(result)
+	c.JSON(http.StatusOK, result)
 }
 
 // @Summary      list youtube videos
@@ -26,10 +64,12 @@ func ListYoutubeVideos(c *gin.Context) {
 
 	channelId := c.Param("channel_id")
 	data := &payloadDetails{ApiKey: config.GCYTAPI3Key, ChannelId: channelId}
+	fmt.Println(data)
 	pythonAPIUrl := "http://127.0.0.1:5000/list/YT"
 	payload, _ := json.Marshal(data)
 	resp, err := http.Post(pythonAPIUrl, "application/json", bytes.NewReader(payload))
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusOK, map[string]interface{}{"status": 400, "error": "Internal Server Error", "msg": "Python Api error"})
 		return
 	}
