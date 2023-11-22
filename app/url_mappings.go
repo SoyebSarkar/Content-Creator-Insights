@@ -18,6 +18,7 @@ func MapUrls(router *gin.Engine) {
 
 	router.GET("/yt/channel_code/:email", ytControllers.GetUserchannelCode)
 	router.GET("/yt/list/videos/:channel_id", ytControllers.ListYoutubeVideos)
-	router.GET("/yt/analyse/video/:video_id", ytControllers.AnalyseVideo)
+	router.GET("/yt/:channel_id/:video_id", ytControllers.GetVideoComment)
+	router.GET("/yt/analyse/:channel_id/:video_id", ytControllers.AnalyseVideo)
 
 }

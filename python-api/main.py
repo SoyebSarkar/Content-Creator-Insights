@@ -6,6 +6,12 @@ from transformers import AutoModelForSequenceClassification
 from scipy.special import softmax
 from googleapiclient.discovery import build
 from tqdm import tqdm
+import time
+import mysql.connector
+
+
+
+
 
 app = Flask(__name__)
 key1 = "AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg"
@@ -14,6 +20,18 @@ youtube = build('youtube', 'v3', developerKey=key1)
 MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+
+
+conn = mysql.connector.connect(
+    host="content-insight-app.c8iayctp2gb1.us-east-1.rds.amazonaws.com",
+    user="admin",
+    password="Test1234",
+    database="content-insight-app"
+)
+cursor = conn.cursor()
+QueryInsertCommentTable = "INSERT INTO `16_comment_stat` (`channel_id`, `video_id`, `comment`, `username`, `positive`, `negetive`, `neutral`) VALUES (%s, %s, %s, %s, %s, %s, %s)" 
+QueryDeleteCommentTable = "DELETE FROM `16_comment_stat` WHERE `channel_id` = %s AND `video_id` = %s"
+
 
 @app.route('/list/YT', methods=['POST'])
 def listYT():
@@ -64,10 +82,12 @@ def listYT():
     return responseObj
 
 
-@app.route('/YT/analyse/<videoId>', methods=['GET'])
-def analyseVideo(videoId):
+@app.route('/YT/analyse/<channelId>/<videoId>', methods=['GET'])
+def analyse(channelId, videoId):
     comments = get_video_comments(videoId)
     comments_df = pd.DataFrame(comments)
+    cursor.execute(QueryDeleteCommentTable, (channelId, videoId))
+
 
     analyseObj = []
     for i, row in tqdm(comments_df.iterrows(), total=len(comments_df)):
@@ -75,18 +95,23 @@ def analyseVideo(videoId):
             temp = {}
             text = row['comment']        
             roberta_result = polarity_scores_roberta(text)
-            temp["comment"] = text
-            temp["scores"] = roberta_result
-            temp["username"] =row['username']
-            temp["likeCount"] = row['likeCount']
-            temp["date"] = row['date']
-            temp["channelName"] = row['channelName']
-            analyseObj.append(temp)
+            # temp["comment"] = text
+            # temp["scores"] = roberta_result
+            # temp["username"] =row['username']
+            # temp["likeCount"] = row['likeCount']
+            # temp["date"] = row['date']
+            # temp["channelName"] = row['channelName']
+            cursor.execute(QueryInsertCommentTable, (channelId, videoId, text, row['username'], roberta_result['roberta_pos'],roberta_result['roberta_neg'], roberta_result['roberta_neu']))
+
+            conn.commit()
+
+            # analyseObj.append(temp)
         except Exception as e:
             print("Unable to execute for comment--->",text)
+            print("Error--->",e)
         
 
-    return analyseObj
+    return jsonify("200")
 
 
 
@@ -108,25 +133,35 @@ def polarity_scores_roberta(example):
 
 def get_video_comments(video_id):
     comments = []
-    next_page_token = None
-   
+    next_page_token = "QURTSl9pMmF3VmxLQU1EcUt2ZjNZcnZrN2VrRHp5OTQydUlpZ0UxR2pzR21FdnNxNHc1MHBOLUQ0bDJfV1JmQWFGaUtqRDRSQWdvS3BMOA=="
+
+    cnt = 3800
     while True:
+        print(next_page_token)
+
         request = youtube.commentThreads().list(
             part='snippet',
             videoId=video_id,
-            maxResults=100,  # You can adjust the number of comments per request
+            maxResults=1000,  # Adjust the number of comments per request
             pageToken=next_page_token,
         )
+        print(request.to_json())
+        # time.sleep(5)
+
         response = request.execute()
-        for item in response['items']:
+
+        print(cnt)
+        cnt+=100
+        for item in response.get('items', []):
             commentDetails = {}
-            commentDetails['comment'] = item['snippet']['topLevelComment']['snippet']['textOriginal']
-            commentDetails['username'] = item['snippet']['topLevelComment']['snippet']['authorDisplayName']
-            commentDetails['likeCount'] = item['snippet']['topLevelComment']['snippet']['likeCount']
-            commentDetails['date'] = item['snippet']['topLevelComment']['snippet']['publishedAt']
-            commentDetails['channelName'] = item['snippet']['topLevelComment']['snippet']['authorChannelUrl']
+            commentDetails['comment'] = item['snippet']['topLevelComment']['snippet'].get('textOriginal', '')
+            commentDetails['username'] = item['snippet']['topLevelComment']['snippet'].get('authorDisplayName', '')
+            commentDetails['likeCount'] = item['snippet']['topLevelComment']['snippet'].get('likeCount', 0)
+            commentDetails['date'] = item['snippet']['topLevelComment']['snippet'].get('publishedAt', '')
+            commentDetails['channelName'] = item['snippet']['topLevelComment']['snippet'].get('authorChannelUrl', '')
             comments.append(commentDetails)
-        next_page_token = response.get('nextPageToken')
+
+        next_page_token = response.get('nextPageToken', None)
 
 
         if not next_page_token:

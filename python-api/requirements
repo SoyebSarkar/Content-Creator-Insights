@@ -4,3 +4,4 @@ transformers
 scipy
 google-api-python-client
 sentiment
+mysql-connector
