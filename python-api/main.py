@@ -14,9 +14,9 @@ import mysql.connector
 
 
 app = Flask(__name__)
-key1 = "AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg"
+# key1 = "AIzaSyB7VjizZKnfAVh5z49B0u26r7GqV5t6Ubg"
 key2 = "AIzaSyBz5T6PD9tN5SSTEHVNXUG2HH6VZN1iEss"
-youtube = build('youtube', 'v3', developerKey=key1)
+youtube = build('youtube', 'v3', developerKey=key2)
 MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)
@@ -69,16 +69,16 @@ def listYT():
             break
     responseObj = []
     for video in videos:
+        print(video)
         responseData = {
             "video_id": video['id'],
             "video_title": video['snippet']['title'],
-            "video_thumbnail": video['snippet']['thumbnails']['standard']['url'],
-            "video_views": video['statistics']['viewCount'],
-            "video_likes": video['statistics']['likeCount'],
-            "video_comments": video['statistics']['commentCount']
+            "video_thumbnail": video['snippet']['thumbnails']['default']['url'],
+            "video_views": video['statistics'].get('viewCount',0),
+            "video_likes": video['statistics'].get('likeCount',0),
+            "video_comments": video['statistics'].get('commentCount',0)
         }
         responseObj.append(responseData)
-    print(responseObj)
     return responseObj
 
 
@@ -111,7 +111,7 @@ def analyse(channelId, videoId):
             print("Error--->",e)
         
 
-    return jsonify("200")
+    return jsonify({"status":200})
 
 
 

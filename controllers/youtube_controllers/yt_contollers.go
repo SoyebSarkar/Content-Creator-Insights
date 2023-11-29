@@ -21,21 +21,34 @@ type Comment struct {
 	UserName  string  `json:"username"`
 	Date      string  `json:"date"`
 	LikeCount int     `json:"likeCount"`
-	Possitive float32 `json:"possitive"`
+	Positive  float32 `json:"positive"`
 	Negative  float32 `json:"negative"`
 	Neutral   float32 `json:"neutral"`
 }
 type CommentDetails struct {
-	PossitiveCount int       `json:"possitive_count"`
-	NegetiveCount  int       `json:"negetive_count"`
-	NeutralCount   int       `json:"neutral_count"`
-	Comments       []Comment `json:"comments"`
+	PositiveCount int       `json:"positive_count"`
+	NegetiveCount int       `json:"negetive_count"`
+	NeutralCount  int       `json:"neutral_count"`
+	Comments      []Comment `json:"comments"`
 }
 
 const (
 	queryListUserChannel    = "SELECT `yt_channel_code` FROM `user_yt_channel` WHERE email = ?"
 	queryListCommentDetails = "SELECT `comment`, `username`, `positive`, `negetive`, `neutral`, `date` FROM `16_comment_stat` WHERE `channel_id` = ? AND `video_id` = ?"
+	queryaddChannelId       = "INSERT INTO `user_yt_channel`( `email`, `yt_channel_code`) VALUES (?, ?)"
 )
+
+func AddChannelID(c *gin.Context) {
+	email := c.Param("email")
+	channelId := c.Param("channel_id")
+	_, err := mysql.Client.Exec(queryaddChannelId, email, channelId)
+	if err != nil {
+		c.JSON(http.StatusOK, errors.NewInternalServerError("Database Error"))
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]int{"status": 200})
+}
 
 // @Summary      list analyse detail of video comments
 // @Description  Returns Sentiment analyse of all video comments
@@ -57,14 +70,14 @@ func GetVideoComment(c *gin.Context) {
 	result.Comments = make([]Comment, 0)
 	for rows.Next() {
 		var comment Comment
-		if err := rows.Scan(&comment.Comment, &comment.UserName, &comment.Possitive, &comment.Negative, &comment.Neutral, &comment.Date); err != nil {
+		if err := rows.Scan(&comment.Comment, &comment.UserName, &comment.Positive, &comment.Negative, &comment.Neutral, &comment.Date); err != nil {
 			fmt.Println(err)
 			c.JSON(http.StatusOK, errors.NewInternalServerError("Database Error"))
 			return
 		}
-		if comment.Possitive >= comment.Negative && comment.Possitive >= comment.Neutral {
-			result.PossitiveCount++
-		} else if comment.Negative >= comment.Possitive && comment.Negative >= comment.Neutral {
+		if comment.Positive >= comment.Negative && comment.Positive >= comment.Neutral {
+			result.PositiveCount++
+		} else if comment.Negative >= comment.Positive && comment.Negative >= comment.Neutral {
 			result.NegetiveCount++
 		} else {
 			result.NeutralCount++

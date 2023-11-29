@@ -16,6 +16,7 @@ func MapUrls(router *gin.Engine) {
 	router.POST("/signup", users.CreateUser)
 	router.POST("/login", users.LoginUser)
 
+	router.GET("/yt/add/:email/:channel_id", ytControllers.AddChannelID)
 	router.GET("/yt/channel_code/:email", ytControllers.GetUserchannelCode)
 	router.GET("/yt/list/videos/:channel_id", ytControllers.ListYoutubeVideos)
 	router.GET("/yt/:channel_id/:video_id", ytControllers.GetVideoComment)
