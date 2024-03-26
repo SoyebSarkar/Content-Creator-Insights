@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/SoyebSarkar/content-creator-insight/controllers/ping"
+	twittercontroller "github.com/SoyebSarkar/content-creator-insight/controllers/twitter_controller"
 	users "github.com/SoyebSarkar/content-creator-insight/controllers/user_controller"
 	ytControllers "github.com/SoyebSarkar/content-creator-insight/controllers/youtube_controllers"
 	"github.com/gin-gonic/gin"
@@ -22,4 +23,6 @@ func MapUrls(router *gin.Engine) {
 	router.GET("/yt/:channel_id/:video_id", ytControllers.GetVideoComment)
 	router.GET("/yt/analyse/:channel_id/:video_id", ytControllers.AnalyseVideo)
 
+	router.GET("/twt/login", twittercontroller.Twtlogin)
+	router.GET("/twt/callback", twittercontroller.HandleTwtAuth)
 }

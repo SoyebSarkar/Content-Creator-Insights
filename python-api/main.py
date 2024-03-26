@@ -7,7 +7,7 @@ from scipy.special import softmax
 from googleapiclient.discovery import build
 from tqdm import tqdm
 import time
-import mysql.connector
+import pymysql
 
 
 
@@ -22,11 +22,18 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
 
-conn = mysql.connector.connect(
-    host="content-insight-app.c8iayctp2gb1.us-east-1.rds.amazonaws.com",
-    user="admin",
-    password="Test1234",
-    database="content-insight-app"
+timeout = 10
+conn = pymysql.connect(
+  charset="utf8mb4",
+  connect_timeout=timeout,
+  cursorclass=pymysql.cursors.DictCursor,
+  db="content-insight-app",
+  host="mysql-7ca8c4a-content-app.a.aivencloud.com",
+  password="AVNS_Wu8FJUQYj4Gt0PBZcF7",
+  read_timeout=timeout,
+  port=14590,
+  user="python-api",
+  write_timeout=timeout,
 )
 cursor = conn.cursor()
 QueryInsertCommentTable = "INSERT INTO `16_comment_stat` (`channel_id`, `video_id`, `comment`, `username`, `positive`, `negetive`, `neutral`) VALUES (%s, %s, %s, %s, %s, %s, %s)" 
@@ -137,21 +144,16 @@ def get_video_comments(video_id):
 
     cnt = 3800
     while True:
-        print(next_page_token)
-
         request = youtube.commentThreads().list(
             part='snippet',
             videoId=video_id,
             maxResults=1000,  # Adjust the number of comments per request
             pageToken=next_page_token,
         )
-        print(request.to_json())
         # time.sleep(5)
 
         response = request.execute()
 
-        print(cnt)
-        cnt+=100
         for item in response.get('items', []):
             commentDetails = {}
             commentDetails['comment'] = item['snippet']['topLevelComment']['snippet'].get('textOriginal', '')

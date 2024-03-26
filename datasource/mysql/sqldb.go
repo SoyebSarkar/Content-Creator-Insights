@@ -13,10 +13,11 @@ var (
 )
 
 func init() {
-	databaseDetails := fmt.Sprintf("%s:%s@tcp(%s)/%s",
+	databaseDetails := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		config.MysqlUser,
 		config.MySqlPassword,
 		config.MysqlHost,
+		config.MysqlPort,
 		config.MySqlTable,
 	)
 	var err error
